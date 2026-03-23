@@ -1,11 +1,11 @@
 package com.mordiniaa.userservice.services;
 
-import com.mordiniaa.backend.exceptions.UsersNotAvailableException;
-import com.mordiniaa.backend.models.user.mongodb.UserRepresentation;
-import com.mordiniaa.backend.models.user.mysql.User;
-import com.mordiniaa.backend.repositories.mongo.user.UserRepresentationRepository;
-import com.mordiniaa.backend.repositories.mongo.user.aggregation.UserReprCustomRepository;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
+import com.mordiniaa.userservice.exceptions.UsersNotAvailableException;
+import com.mordiniaa.userservice.models.mongodb.UserRepresentation;
+import com.mordiniaa.userservice.models.mysql.User;
+import com.mordiniaa.userservice.repositories.mongo.UserRepresentationRepository;
+import com.mordiniaa.userservice.repositories.mongo.aggregation.UserReprCustomRepository;
+import com.mordiniaa.userservice.repositories.mysql.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;

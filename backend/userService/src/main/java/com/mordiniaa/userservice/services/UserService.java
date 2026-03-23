@@ -1,25 +1,18 @@
 package com.mordiniaa.userservice.services;
 
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.models.auth.PasswordResetToken;
-import com.mordiniaa.backend.models.user.DbUser;
-import com.mordiniaa.backend.models.user.mysql.AppRole;
-import com.mordiniaa.backend.models.user.mysql.Contact;
-import com.mordiniaa.backend.models.user.mysql.User;
-import com.mordiniaa.backend.repositories.mongo.user.UserRepresentationRepository;
-import com.mordiniaa.backend.repositories.mysql.PasswordResetTokenRepository;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
-import com.mordiniaa.backend.request.auth.ResetPasswordTokenRequest;
-import com.mordiniaa.backend.services.storage.profileImagesStorage.ImagesStorageService;
-import com.mordiniaa.backend.utils.EmailService;
+import com.mordiniaa.userservice.dto.UserDto;
+import com.mordiniaa.userservice.exceptions.BadRequestException;
+import com.mordiniaa.userservice.mappers.UserMapper;
+import com.mordiniaa.userservice.models.mysql.AppRole;
+import com.mordiniaa.userservice.models.mysql.User;
+import com.mordiniaa.userservice.repositories.mysql.UserRepository;
+import com.mordiniaa.userservice.requests.ResetPasswordTokenRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -27,37 +20,30 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserRepresentationRepository userRepresentationRepository;
-    private final MongoUserService mongoUserService;
-    private final ImagesStorageService imagesStorageService;
-    private final EmailService emailService;
-    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserMapper userMapper;
 
     public User getUser(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException("User Not Found"));
     }
 
-    public void addProfileImage(UUID userId, MultipartFile file) {
-
-        mongoUserService.checkUserAvailability(userId);
-        DbUser user = userRepresentationRepository.findByUserId(userId)
-                .orElseThrow(() -> new BadRequestException("User Not Found"));
-
-        imagesStorageService.addProfileImage(user, file);
-    }
-
-    public void setDefaultProfileImage(UUID userId) {
-
-        mongoUserService.checkUserAvailability(userId);
-        DbUser user = userRepresentationRepository.findByUserId(userId)
-                .orElseThrow(() -> new BadRequestException("User Not Found"));
-
-        imagesStorageService.setDefaultImage(user);
-    }
-
     @Transactional
+    public UserDto getUserDto(String username) {
+        return userRepository.findUserByUsernameAndDeletedFalse(username)
+                .map(user -> UserDto.builder()
+                        .userId(user.getUserId())
+                        .username(username)
+                        .imageKey(user.getImageKey())
+                        .email(user.getContact().getEmail())
+                        .build()
+                )
+                .orElseThrow(() -> new BadRequestException("User Not Found"));
+    }
+
+    // TODO: Move To Auth Service, Auth Service Requests User Service To Get User DTO, generates token, forwards to notification service to send email with token
+    /*@Transactional
     public void generatePasswordResetToken(String username) {
 
         User user = userRepository.findUserByUsernameAndDeletedFalse(username)
@@ -67,22 +53,24 @@ public class UserService {
 
         String email = userContactData.getEmail();
 
-        UUID token = UUID.randomUUID();
+        // TODO: Move To Auth Service And Get Token
+        *//*UUID token = UUID.randomUUID();
         Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
-
         PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
-        passwordResetTokenRepository.save(resetToken);
+        passwordResetTokenRepository.save(resetToken);*//*
 
         //Frontend Does Not Exist Yet
-        String resetUrl = "http://localhost:3000" + "/reset-password?token=" + token;
 
-        emailService.sendPasswordResetEmail(email, resetUrl);
-    }
+        // TODO: Send to Notification By Kafka
+        *//*String resetUrl = "http://localhost:3000" + "/reset-password?token=" + token;
+        emailService.sendPasswordResetEmail(email, resetUrl);*//*
+    }*/
 
     @Transactional
-    public void resetPassword(ResetPasswordTokenRequest request) {
+    public void resetPassword(UUID userId, ResetPasswordTokenRequest request) {
 
-        String token = request.getToken();
+        //TODO: Move To Auth Service And Call By Request
+        /*String token = request.getToken();
         String newPassword = request.getNewPassword();
 
         UUID storedToken;
@@ -101,14 +89,18 @@ public class UserService {
 
         if (resetToken.getExpiryDate().isBefore(Instant.now())) {
             throw new BadRequestException("Token Expired");
-        }
+        }*/
 
-        User user = resetToken.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
+        User user = userRepository.findUserByUserIdAndDeletedFalse(userId)
+                .orElseThrow(() -> new BadRequestException("User Not Found"));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        resetToken.setUsed(true);
-        passwordResetTokenRepository.save(resetToken);
+        // TODO: Move To Auth Service
+        /*resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);*/
+
+        // TODO: Return Response To Auth Service
     }
 
     public User findNonDeletedUserAndAppRole(UUID userId, AppRole appRole) {

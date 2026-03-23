@@ -1,24 +1,24 @@
 package com.mordiniaa.userservice.services;
 
-import com.mordiniaa.backend.config.StorageProperties;
-import com.mordiniaa.backend.dto.user.UserDto;
-import com.mordiniaa.backend.events.user.events.UserCreatedEvent;
-import com.mordiniaa.backend.events.user.events.UserDeleteEvent;
-import com.mordiniaa.backend.events.user.events.UserUsernameChangedEvent;
-import com.mordiniaa.backend.exceptions.*;
-import com.mordiniaa.backend.mappers.user.UserMapper;
-import com.mordiniaa.backend.models.user.mysql.*;
-import com.mordiniaa.backend.repositories.mysql.AddressRepository;
-import com.mordiniaa.backend.repositories.mysql.ContactRepository;
-import com.mordiniaa.backend.repositories.mysql.RoleRepository;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
-import com.mordiniaa.backend.request.user.AddressRequest;
-import com.mordiniaa.backend.request.user.ContactDataRequest;
-import com.mordiniaa.backend.request.user.CreateUserRequest;
-import com.mordiniaa.backend.request.user.PasswordRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserAddressRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserContactDataRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserDataRequest;
+import com.mordiniaa.userservice.config.StorageProperties;
+import com.mordiniaa.userservice.dto.UserDto;
+import com.mordiniaa.userservice.events.events.UserCreatedEvent;
+import com.mordiniaa.userservice.events.events.UserDeleteEvent;
+import com.mordiniaa.userservice.events.events.UserUsernameChangedEvent;
+import com.mordiniaa.userservice.exceptions.*;
+import com.mordiniaa.userservice.mappers.UserMapper;
+import com.mordiniaa.userservice.models.mysql.*;
+import com.mordiniaa.userservice.repositories.mysql.AddressRepository;
+import com.mordiniaa.userservice.repositories.mysql.ContactRepository;
+import com.mordiniaa.userservice.repositories.mysql.RoleRepository;
+import com.mordiniaa.userservice.repositories.mysql.UserRepository;
+import com.mordiniaa.userservice.requests.user.AddressRequest;
+import com.mordiniaa.userservice.requests.user.ContactDataRequest;
+import com.mordiniaa.userservice.requests.user.CreateUserRequest;
+import com.mordiniaa.userservice.requests.user.PasswordRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserAddressRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserContactDataRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserDataRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -257,7 +257,7 @@ public class UserAdminService {
         String repeatedPassword = passwordRequest.getRepeatedPassword();
 
         if (!password.equals(repeatedPassword))
-            throw new BadRequestException("Password Missmatch");
+            throw new BadRequestException("Password Mismatch");
 
         String encodedPassword = passwordEncoder.encode(password);
         user.setPassword(encodedPassword);
