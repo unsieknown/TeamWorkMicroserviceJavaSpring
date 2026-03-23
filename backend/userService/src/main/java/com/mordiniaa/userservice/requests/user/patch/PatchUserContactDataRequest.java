@@ -1,6 +1,6 @@
-package com.mordiniaa.userservice.requests.patch;
+package com.mordiniaa.userservice.requests.user.patch;
 
-import com.mordiniaa.backend.request.user.ContactDataRequest;
+import com.mordiniaa.userservice.requests.user.ContactDataRequest;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

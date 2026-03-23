@@ -1,12 +1,12 @@
 package com.mordiniaa.userservice.controllers;
 
-import com.mordiniaa.backend.dto.user.UserDto;
-import com.mordiniaa.backend.request.user.CreateUserRequest;
-import com.mordiniaa.backend.request.user.PasswordRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserAddressRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserContactDataRequest;
-import com.mordiniaa.backend.request.user.patch.PatchUserDataRequest;
-import com.mordiniaa.backend.services.user.UserAdminService;
+import com.mordiniaa.userservice.dto.UserDto;
+import com.mordiniaa.userservice.requests.user.CreateUserRequest;
+import com.mordiniaa.userservice.requests.user.PasswordRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserAddressRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserContactDataRequest;
+import com.mordiniaa.userservice.requests.user.patch.PatchUserDataRequest;
+import com.mordiniaa.userservice.services.UserAdminService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
-package com.mordiniaa.userservice.requests.patch;
+package com.mordiniaa.userservice.requests.user.patch;
 
-import com.mordiniaa.backend.request.user.AddressRequest;
+import com.mordiniaa.userservice.requests.user.AddressRequest;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

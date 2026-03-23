@@ -1,8 +1,7 @@
 package com.mordiniaa.userservice.models.mysql;
 
-import com.mordiniaa.backend.models.BaseEntity;
-import com.mordiniaa.backend.models.team.Team;
-import com.mordiniaa.backend.models.user.DbUser;
+import com.mordiniaa.userservice.models.BaseEntity;
+import com.mordiniaa.userservice.models.DbUser;
 import jakarta.persistence.*;
 import lombok.*;
 

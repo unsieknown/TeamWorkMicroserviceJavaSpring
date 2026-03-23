@@ -1,4 +1,4 @@
-package com.mordiniaa.userservice.requests;
+package com.mordiniaa.userservice.requests.user;
 
 public interface ContactDataRequest {
 

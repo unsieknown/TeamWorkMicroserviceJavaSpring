@@ -1,7 +1,7 @@
 package com.mordiniaa.userservice.mappers;
 
-import com.mordiniaa.backend.dto.user.UserDto;
-import com.mordiniaa.backend.models.user.DbUser;
+import com.mordiniaa.userservice.dto.UserDto;
+import com.mordiniaa.userservice.models.DbUser;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,7 +11,7 @@ public class UserMapper {
         return UserDto.builder()
                 .userId(dbUser.getUserId())
                 .username(dbUser.getUsername())
-                .imageUrl(dbUser.getImageKey())
+                .imageKey(dbUser.getImageKey())
                 .build();
     }
 }

@@ -1,4 +1,4 @@
-package com.mordiniaa.userservice.requests.patch;
+package com.mordiniaa.userservice.requests.user.patch;
 
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;

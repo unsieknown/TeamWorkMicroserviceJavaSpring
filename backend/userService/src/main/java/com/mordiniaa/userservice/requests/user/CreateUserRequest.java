@@ -1,12 +1,11 @@
-package com.mordiniaa.userservice.requests;
+package com.mordiniaa.userservice.requests.user;
 
-import com.mordiniaa.backend.models.user.mysql.AppRole;
+import com.mordiniaa.userservice.models.mysql.AppRole;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.hibernate.annotations.processing.Pattern;
 
 @Getter
 @Setter

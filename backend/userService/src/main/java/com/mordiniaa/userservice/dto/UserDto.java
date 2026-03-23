@@ -1,5 +1,6 @@
 package com.mordiniaa.userservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.util.UUID;
@@ -9,9 +10,11 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class UserDto {
 
     private UUID userId;
     private String username;
-    private String imageUrl;
+    private String imageKey;
+    private String email;
 }

@@ -1,8 +1,8 @@
 package com.mordiniaa.userservice.controllers;
 
-import com.mordiniaa.backend.payload.APIResponse;
-import com.mordiniaa.backend.security.utils.AuthUtils;
-import com.mordiniaa.backend.services.user.UserService;
+import com.mordiniaa.userservice.responses.APIResponse;
+import com.mordiniaa.userservice.services.UserProfileImageService;
+import com.mordiniaa.userservice.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +17,13 @@ import java.util.UUID;
 public class ProfileImageController {
 
     private final AuthUtils authUtils;
-    private final UserService userService;
+    private final UserProfileImageService userProfileImageService;
 
     @PostMapping("/add")
-    public ResponseEntity<APIResponse<Void>> addProgileImage(@RequestBody MultipartFile profileImage) {
+    public ResponseEntity<APIResponse<Void>> addProfileImage(@RequestBody MultipartFile profileImage) {
 
         UUID userId = authUtils.authenticatedUserId();
-        userService.addProfileImage(userId, profileImage);
+        userProfileImageService.addProfileImage(userId, profileImage);
         return new ResponseEntity<>(
                 new APIResponse<>(
                         "Added Image Successfully",
@@ -37,7 +37,7 @@ public class ProfileImageController {
     public ResponseEntity<APIResponse<Void>> setDefaultImage() {
 
         UUID userId = authUtils.authenticatedUserId();
-        userService.setDefaultProfileImage(userId);
+        userProfileImageService.setDefaultProfileImage(userId);
         return new ResponseEntity<>(
                 new APIResponse<>(
                         "Image Set Successfully",

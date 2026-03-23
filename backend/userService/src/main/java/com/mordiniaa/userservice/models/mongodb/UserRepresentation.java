@@ -1,6 +1,6 @@
 package com.mordiniaa.userservice.models.mongodb;
 
-import com.mordiniaa.backend.models.user.DbUser;
+import com.mordiniaa.userservice.models.DbUser;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.mordiniaa.userservice.requests;
+package com.mordiniaa.userservice.requests.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

@@ -1,8 +1,8 @@
 package com.mordiniaa.userservice.repositories.mysql;
 
-import com.mordiniaa.backend.models.user.mysql.AppRole;
-import com.mordiniaa.backend.models.user.mysql.User;
-import com.mordiniaa.backend.security.service.user.SecurityUserProjection;
+import com.mordiniaa.userservice.models.mysql.AppRole;
+import com.mordiniaa.userservice.models.mysql.User;
+import com.mordiniaa.userservice.projections.SecurityUserProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +13,11 @@ import java.util.UUID;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, UUID> {
+
+    @Modifying
+    @Query("update User u set u.imageKey = :imageKey where u.userId = :userId")
+    void setProfileImageKey(UUID userId, String imageKey);
+
     @Modifying
     @Query("update User u set u.imageKey = :imageKey where u.userId = :userId")
     void updateImageKeyByUserId(String imageKey, UUID userId);
@@ -59,4 +64,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findUserByUserIdAndDeletedFalseAndRole_AppRole(UUID userId, AppRole roleAppRole);
 
     Optional<User> findUserByUsernameAndDeletedFalse(String username);
+
+    boolean existsUserByUserIdAndDeletedFalse(UUID userId);
 }

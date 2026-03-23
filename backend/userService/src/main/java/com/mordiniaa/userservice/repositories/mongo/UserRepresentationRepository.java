@@ -1,6 +1,6 @@
 package com.mordiniaa.userservice.repositories.mongo;
 
-import com.mordiniaa.backend.models.user.mongodb.UserRepresentation;
+import com.mordiniaa.userservice.models.mongodb.UserRepresentation;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

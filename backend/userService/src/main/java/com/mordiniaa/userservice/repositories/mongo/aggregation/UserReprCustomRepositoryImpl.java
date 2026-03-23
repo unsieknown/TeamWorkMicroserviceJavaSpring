@@ -1,7 +1,7 @@
 package com.mordiniaa.userservice.repositories.mongo.aggregation;
 
-import com.mordiniaa.backend.exceptions.ArgumentNotPresentException;
-import com.mordiniaa.backend.models.user.mongodb.UserRepresentation;
+import com.mordiniaa.userservice.exceptions.ArgumentNotPresentException;
+import com.mordiniaa.userservice.models.mongodb.UserRepresentation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
