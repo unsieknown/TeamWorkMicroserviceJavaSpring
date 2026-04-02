@@ -1,9 +1,7 @@
 package com.mordiniaa.authservice.security.service.user;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,8 +10,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class SecurityUser implements UserDetails {
@@ -30,16 +30,16 @@ public class SecurityUser implements UserDetails {
 
     public static SecurityUser build(SecurityUserProjection user) {
 
-        GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().getAppRole().name());
+        GrantedAuthority authority = new SimpleGrantedAuthority(user.getAppRole().name());
 
         return new SecurityUser(
                 user.getUserId(),
                 user.getUsername(),
                 user.getPassword(),
-                user.getAccountNonExpired(),
-                user.getAccountNonLocked(),
-                user.getCredentialsNonExpired(),
-                !user.getDeleted(),
+                user.isAccountNonExpired(),
+                user.isAccountNonLocked(),
+                user.isCredentialsNonExpired(),
+                !user.isDeleted(),
                 List.of(authority)
         );
     }

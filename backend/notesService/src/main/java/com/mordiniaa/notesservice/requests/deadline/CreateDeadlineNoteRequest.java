@@ -1,8 +1,8 @@
 package com.mordiniaa.notesservice.requests.deadline;
 
-import com.mordiniaa.backend.models.note.deadline.Priority;
-import com.mordiniaa.backend.models.note.deadline.Status;
-import com.mordiniaa.backend.request.note.CreateNoteRequest;
+import com.mordiniaa.notesservice.models.deadline.Priority;
+import com.mordiniaa.notesservice.models.deadline.Status;
+import com.mordiniaa.notesservice.requests.CreateNoteRequest;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

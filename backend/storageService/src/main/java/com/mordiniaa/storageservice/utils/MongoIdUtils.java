@@ -1,6 +1,6 @@
 package com.mordiniaa.storageservice.utils;
 
-import com.mordiniaa.backend.exceptions.BadRequestException;
+import com.mordiniaa.storageservice.exceptions.BadRequestException;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 

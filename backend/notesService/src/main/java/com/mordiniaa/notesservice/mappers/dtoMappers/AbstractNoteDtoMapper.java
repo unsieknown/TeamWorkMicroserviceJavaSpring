@@ -1,7 +1,8 @@
 package com.mordiniaa.notesservice.mappers.dtoMappers;
 
-import com.mordiniaa.backend.dto.note.NoteDto;
-import com.mordiniaa.backend.models.note.Note;
+
+import com.mordiniaa.notesservice.dto.NoteDto;
+import com.mordiniaa.notesservice.models.Note;
 
 public abstract class AbstractNoteDtoMapper<T extends Note, D extends NoteDto> {
 

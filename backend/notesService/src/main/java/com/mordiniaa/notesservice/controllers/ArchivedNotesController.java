@@ -1,13 +1,13 @@
 package com.mordiniaa.notesservice.controllers;
 
-import com.mordiniaa.backend.config.NotesConstants;
-import com.mordiniaa.backend.dto.note.NoteDto;
-import com.mordiniaa.backend.payload.APIExceptionResponse;
-import com.mordiniaa.backend.payload.APIResponse;
-import com.mordiniaa.backend.payload.note.NoteDtoCollectionResponse;
-import com.mordiniaa.backend.security.utils.AuthUtils;
-import com.mordiniaa.backend.services.notes.ArchivedNotesService;
-import com.mordiniaa.backend.utils.PageResult;
+import com.mordiniaa.notesservice.config.NotesConstants;
+import com.mordiniaa.notesservice.dto.NoteDto;
+import com.mordiniaa.notesservice.responses.APIExceptionResponse;
+import com.mordiniaa.notesservice.responses.APIResponse;
+import com.mordiniaa.notesservice.responses.NoteDtoCollectionResponse;
+import com.mordiniaa.notesservice.services.ArchivedNotesService;
+import com.mordiniaa.notesservice.utils.AuthUtils;
+import com.mordiniaa.notesservice.utils.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -34,7 +34,7 @@ import java.util.UUID;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/notes/archive")
+@RequestMapping("/notes/archive")
 public class ArchivedNotesController {
 
     private final ArchivedNotesService archivedNotesService;

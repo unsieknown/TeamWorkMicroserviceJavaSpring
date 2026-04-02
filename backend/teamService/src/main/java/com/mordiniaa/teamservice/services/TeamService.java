@@ -1,13 +1,13 @@
 package com.mordiniaa.teamservice.services;
 
-import com.mordiniaa.backend.dto.team.TeamDetailedDto;
-import com.mordiniaa.backend.dto.team.TeamShortDto;
-import com.mordiniaa.backend.dto.user.UserDto;
-import com.mordiniaa.backend.exceptions.TeamNotFoundException;
-import com.mordiniaa.backend.mappers.team.TeamMapper;
-import com.mordiniaa.backend.mappers.user.UserMapper;
-import com.mordiniaa.backend.models.team.Team;
-import com.mordiniaa.backend.repositories.mysql.TeamRepository;
+import com.mordiniaa.teamservice.clients.user.UserServiceClient;
+import com.mordiniaa.teamservice.dto.TeamDetailedDto;
+import com.mordiniaa.teamservice.dto.TeamShortDto;
+import com.mordiniaa.teamservice.dto.UserDto;
+import com.mordiniaa.teamservice.exceptions.TeamNotFoundException;
+import com.mordiniaa.teamservice.mappers.TeamMapper;
+import com.mordiniaa.teamservice.models.Team;
+import com.mordiniaa.teamservice.repositories.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +22,7 @@ public class TeamService {
 
     private final TeamRepository teamRepository;
     private final TeamMapper teamMapper;
-    private final UserMapper userMapper;
+    private final UserServiceClient userServiceClient;
 
     Team getTeam(UUID teamId) {
         return teamRepository.findById(teamId)
@@ -31,7 +30,7 @@ public class TeamService {
     }
 
     public List<TeamShortDto> getTeamsForManager(UUID managerId) {
-        return teamRepository.findAllByManager_UserId(managerId).stream()
+        return teamRepository.findAllByManagerId(managerId).stream()
                 .map(teamMapper::toShortDto)
                 .toList();
     }
@@ -39,11 +38,10 @@ public class TeamService {
     @Transactional(readOnly = true)
     public TeamDetailedDto getTeamDetails(UUID teamId, UUID managerId) {
 
-        Team team = teamRepository.findTeamByTeamIdAndManager_UserId(teamId, managerId)
+        Team team = teamRepository.findTeamByTeamIdAndManagerId(teamId, managerId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        Set<UserDto> dtoMembers = team.getTeamMembers().stream().map(userMapper::toDto)
-                .collect(Collectors.toSet());
+        Set<UserDto> dtoMembers = userServiceClient.getUsersByIds(team.getTeamMembers()).getUsers();
 
         TeamDetailedDto teamDetailedDto = (TeamDetailedDto) teamMapper.toShortDto(team);
         teamDetailedDto.setTeamMembers(dtoMembers);

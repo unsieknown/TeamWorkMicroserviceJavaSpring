@@ -2,8 +2,8 @@ package com.mordiniaa.notesservice.requests;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.mordiniaa.backend.request.note.deadline.PatchDeadlineNoteRequest;
-import com.mordiniaa.backend.request.note.regular.PatchRegularNoteRequest;
+import com.mordiniaa.notesservice.requests.deadline.PatchDeadlineNoteRequest;
+import com.mordiniaa.notesservice.requests.regular.PatchRegularNoteRequest;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

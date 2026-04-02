@@ -2,8 +2,8 @@ package com.mordiniaa.notesservice.requests;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.mordiniaa.backend.request.note.deadline.CreateDeadlineNoteRequest;
-import com.mordiniaa.backend.request.note.regular.CreateRegularNoteRequest;
+import com.mordiniaa.notesservice.requests.deadline.CreateDeadlineNoteRequest;
+import com.mordiniaa.notesservice.requests.regular.CreateRegularNoteRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

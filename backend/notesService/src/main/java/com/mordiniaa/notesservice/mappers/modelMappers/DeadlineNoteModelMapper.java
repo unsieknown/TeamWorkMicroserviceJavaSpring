@@ -1,10 +1,10 @@
 package com.mordiniaa.notesservice.mappers.modelMappers;
 
-import com.mordiniaa.backend.models.note.deadline.DeadlineNote;
-import com.mordiniaa.backend.request.note.NoteRequest;
-import com.mordiniaa.backend.request.note.deadline.CreateDeadlineNoteRequest;
-import com.mordiniaa.backend.request.note.deadline.DeadlineNoteRequest;
-import com.mordiniaa.backend.request.note.deadline.PatchDeadlineNoteRequest;
+import com.mordiniaa.notesservice.models.deadline.DeadlineNote;
+import com.mordiniaa.notesservice.requests.NoteRequest;
+import com.mordiniaa.notesservice.requests.deadline.CreateDeadlineNoteRequest;
+import com.mordiniaa.notesservice.requests.deadline.DeadlineNoteRequest;
+import com.mordiniaa.notesservice.requests.deadline.PatchDeadlineNoteRequest;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;

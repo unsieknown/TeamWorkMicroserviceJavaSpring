@@ -1,7 +1,7 @@
 package com.mordiniaa.notesservice.dto;
 
-import com.mordiniaa.backend.models.note.deadline.Priority;
-import com.mordiniaa.backend.models.note.deadline.Status;
+import com.mordiniaa.notesservice.models.deadline.Priority;
+import com.mordiniaa.notesservice.models.deadline.Status;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

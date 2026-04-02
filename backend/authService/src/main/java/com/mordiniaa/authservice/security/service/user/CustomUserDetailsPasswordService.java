@@ -1,7 +1,7 @@
 package com.mordiniaa.authservice.security.service.user;
 
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
+import com.mordiniaa.authservice.exceptions.BadRequestException;
+import com.mordiniaa.authservice.services.inter.UserServiceInter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CustomUserDetailsPasswordService implements UserDetailsPasswordService {
 
-    private final UserRepository userRepository;
+    private final UserServiceInter userServiceInter;
 
     @Override
     @Transactional
@@ -23,9 +23,9 @@ public class CustomUserDetailsPasswordService implements UserDetailsPasswordServ
         SecurityUser securityUser = (SecurityUser) user;
         UUID userId = securityUser.getUserId();
 
-        userRepository.updatePasswordByUserId(userId, newPassword);
+        userServiceInter.updatePasswordByUserId(userId, newPassword);
 
-        SecurityUserProjection updatedUser = userRepository.findSecurityUserByUsername(securityUser.getUsername())
+        SecurityUserProjection updatedUser = userServiceInter.findSecurityUserByUsername(securityUser.getUsername())
                 .orElseThrow(() -> new BadRequestException("User Not Found"));
 
         return SecurityUser.build(updatedUser);

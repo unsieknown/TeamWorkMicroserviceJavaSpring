@@ -1,15 +1,76 @@
 spring:
-  h2:
-    console:
-      enabled: true
+  jpa:
+    database: mysql
+    hibernate:
+      ddl-auto: validate
   datasource:
-    url: jdbc:h2:mem:test
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${MYSQL_HOST}:3306/${MYSQL_DATABASE}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  flyway:
+    schemas: ${MYSQL_DATABASE}
+    user: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    locations: classpath:db/migration
+    url: jdbc:mysql://${MYSQL_HOST}:3306/${MYSQL_DATABASE}
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        delivery.timeout.ms: 5000
+        request.timeout.ms: 3000
+        retries: 2
+        max.block.ms: 2000
+    topics:
+      user:
+        passwordResetToken:
+          name: passwordResetToken-topic
+  security:
+    oauth2:
+      authorizationserver:
+        issuer: http://localhost:8086
+
+interservice:
+  services:
+    current_service: "http://auth-service"
+    user_service: "http://user-service"
+    storage_service: "http://storage-service"
+    audit_service: "http://audit-service"
+    board_service: "http://board-service"
+    gateway_service: "http://gateway-service"
+    notes_service: "http://notes-service"
+    team_service: "http://team-service"
 
 server:
-  port: 8087
+  port: 8086
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://localhost:8761/eureka
+
+security:
+  app:
+    refresh-token-family:
+      max-session-days: 90
+      token-name:
+    refresh-token:
+      validity-days: 30
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

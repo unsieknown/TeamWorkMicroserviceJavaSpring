@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: board-service
+  main:
+    banner-mode: off
+  config:
+    import: configserver:http://config-server:8888

@@ -1,8 +1,26 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8086/.well-known/jwks.json
+
 server:
   port: 8080
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://eureka:8761/eureka
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

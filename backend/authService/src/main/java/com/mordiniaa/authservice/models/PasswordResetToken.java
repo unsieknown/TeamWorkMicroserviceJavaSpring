@@ -1,6 +1,5 @@
 package com.mordiniaa.authservice.models;
 
-import com.mordiniaa.backend.models.user.mysql.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,13 +28,11 @@ public class PasswordResetToken {
     @Column(name = "used", nullable = false)
     private boolean used = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private UUID userId;
 
-    public PasswordResetToken(UUID token, Instant expiryDate, User user) {
+    public PasswordResetToken(UUID token, Instant expiryDate, UUID userId) {
         this.token = token;
         this.expiryDate = expiryDate;
-        this.user = user;
+        this.userId = userId;
     }
 }

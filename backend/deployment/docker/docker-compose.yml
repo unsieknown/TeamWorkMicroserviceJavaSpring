@@ -1,0 +1,351 @@
+services:
+  kafka:
+    image: apache/kafka:latest
+    working_dir: /opt/kafka/bin
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_NUM_PARTITIONS: 3
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: [ "CMD-SHELL", "./kafka-topics.sh --bootstrap-server localhost:9092 --list" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  user-service-mysql-db:
+    image: mysql:8.0
+    volumes:
+      - user_mysql_volume:/var/lib/mysql
+    environment:
+      MYSQL_USER: ${USER_MYSQL_USER}
+      MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${USER_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  storage-service-mysql-db:
+    image: mysql:8.0
+    volumes:
+      - storage_mysql_volume:/var/lib/mysql
+    environment:
+      MYSQL_USER: ${STORAGE_MYSQL_USER}
+      MYSQL_PASSWORD: ${STORAGE_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${STORAGE_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${STORAGE_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  team-service-mysql-db:
+    image: mysql:8.0
+    volumes:
+      - team_mysql_volume:/var/lib/mysql
+    environment:
+      MYSQL_USER: ${TEAM_MYSQL_USER}
+      MYSQL_PASSWORD: ${TEAM_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${TEAM_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${TEAM_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  auth-service-mysql-db:
+    image: mysql:8.0
+    volumes:
+      - auth_mysql_volume:/var/lib/mysql
+    environment:
+      MYSQL_USER: ${AUTH_MYSQL_USER}
+      MYSQL_PASSWORD: ${AUTH_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${AUTH_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${AUTH_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.3-apache
+    ports:
+      - "8030:80"
+    environment:
+      PMA_ARBITRARY: 1
+
+  storage-service-mongo-db:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${STORAGE_MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${STORAGE_MONGO_ROOT_PASSWORD}
+    volumes:
+      - storage_mongo_volume:/data/db
+      - ./mongodb/storage:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  notes-service-mongo-db:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${NOTES_MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${NOTES_MONGO_ROOT_PASSWORD}
+    volumes:
+      - notes_mongo_volume:/data/db
+      - ./mongodb/notes:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  board-service-mongo-db:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${BOARD_MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${BOARD_MONGO_ROOT_PASSWORD}
+    volumes:
+      - board_mongo_volume:/data/db
+      - ./mongodb/board:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  eureka:
+    image: mordiniaa/teamwork_eureka-server
+    ports:
+      - "8761:8761"
+
+  config-server:
+    image: mordiniaa/teamwork_config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka
+      - kafka
+      - rabbitmq
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,native
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8888/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    image: mordiniaa/teamwork_auth-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      config-server:
+        condition: service_healthy
+      auth-service-mysql-db:
+        condition: service_healthy
+    volumes:
+      - auth_keys:/keys
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: auth-service-mysql-db
+      MYSQL_USER: ${AUTH_MYSQL_USER}
+      MYSQL_PASSWORD: ${AUTH_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${AUTH_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8086/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    image: mordiniaa/teamwork_user-service
+    volumes:
+      - ./admin_password.txt:/run/secrets/admin_password.txt:ro
+    ports:
+      - "8081:8081"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service-mysql-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: user-service-mysql-db
+      MYSQL_USER: ${USER_MYSQL_USER}
+      MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8081/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  team-service:
+    image: mordiniaa/teamwork_team-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      team-service-mysql-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: team-service-mysql-db
+      MYSQL_USER: ${TEAM_MYSQL_USER}
+      MYSQL_PASSWORD: ${TEAM_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${TEAM_MYSQL_DATABASE}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8082/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  storage-service:
+    image: mordiniaa/teamwork_storage-service
+    volumes:
+      - storage_data:/data
+    ports:
+      - "8083:8083"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      storage-service-mongo-db:
+        condition: service_healthy
+      storage-service-mysql-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MYSQL_HOST: storage-service-mysql-db
+      MYSQL_USER: ${STORAGE_MYSQL_USER}
+      MYSQL_PASSWORD: ${STORAGE_MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${STORAGE_MYSQL_DATABASE}
+      MONGO_DB_HOST: storage-service-mongo-db
+      MONGO_DB_PORT: 27017
+      MONGO_DB_NAME: ${STORAGE_MONGO_DB_NAME}
+      MONGO_DB_USER: ${STORAGE_MONGO_DB_USER}
+      MONGO_DB_PASSWORD: ${STORAGE_MONGO_DB_PASSWORD}
+      PROFILE_IMAGES_ROOT: ${PROFILE_IMAGES_ROOT}
+      STORAGE_ROOT: ${STORAGE_ROOT}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8083/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notes-service:
+    image: mordiniaa/teamwork_notes-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      notes-service-mongo-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MONGO_DB_HOST: notes-service-mongo-db
+      MONGO_DB_PORT: 27017
+      MONGO_DB_NAME: ${NOTES_MONGO_DB_NAME}
+      MONGO_DB_USER: ${NOTES_MONGO_DB_USER}
+      MONGO_DB_PASSWORD: ${NOTES_MONGO_DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8084/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  board-service:
+    image: mordiniaa/teamwork_board-service
+    ports:
+      - "8085:8085"
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      board-service-mongo-db:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MONGO_DB_HOST: board-service-mongo-db
+      MONGO_DB_PORT: 27017
+      MONGO_DB_NAME: ${BOARD_MONGO_DB_NAME}
+      MONGO_DB_USER: ${BOARD_MONGO_DB_USER}
+      MONGO_DB_PASSWORD: ${BOARD_MONGO_DB_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --spider -q http://localhost:8085/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  notification-server:
+    image: mordiniaa/teamwork_notification-server
+    ports:
+      - "9876:9876"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      MAIL_ADDR: ${MAIL_ADDR}
+      MAIL_PASSWD: ${MAIL_PASSWD}
+    depends_on:
+      config-server:
+        condition: service_healthy
+
+  gateway-server:
+    image: mordiniaa/teamwork_gateway-server
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      board-service:
+        condition: service_healthy
+      team-service:
+        condition: service_healthy
+      notes-service:
+        condition: service_healthy
+      storage-service:
+        condition: service_healthy
+
+volumes:
+  user_mysql_volume:
+  storage_mysql_volume:
+  team_mysql_volume:
+  auth_mysql_volume:
+  auth_keys:
+  storage_mongo_volume:
+  storage_data:
+  notes_mongo_volume:
+  board_mongo_volume:

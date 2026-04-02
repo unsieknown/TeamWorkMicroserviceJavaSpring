@@ -1,16 +1,16 @@
 package com.mordiniaa.storageservice.services.cloudStorage;
 
-import com.mordiniaa.backend.config.StorageProperties;
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.exceptions.StorageQuotaExceededException;
-import com.mordiniaa.backend.exceptions.UnexpectedException;
-import com.mordiniaa.backend.models.file.cloudStorage.FileNode;
-import com.mordiniaa.backend.models.file.cloudStorage.NodeType;
-import com.mordiniaa.backend.models.file.cloudStorage.UserStorage;
-import com.mordiniaa.backend.repositories.mysql.FileNodeRepository;
-import com.mordiniaa.backend.repositories.mysql.UserStorageRepository;
-import com.mordiniaa.backend.services.storage.StorageProvider;
-import com.mordiniaa.backend.utils.CloudStorageServiceUtils;
+import com.mordiniaa.storageservice.config.StorageProperties;
+import com.mordiniaa.storageservice.exceptions.BadRequestException;
+import com.mordiniaa.storageservice.exceptions.StorageQuotaExceededException;
+import com.mordiniaa.storageservice.exceptions.UnexpectedException;
+import com.mordiniaa.storageservice.models.cloudStorage.FileNode;
+import com.mordiniaa.storageservice.models.cloudStorage.NodeType;
+import com.mordiniaa.storageservice.models.cloudStorage.UserStorage;
+import com.mordiniaa.storageservice.repositories.mysql.FileNodeRepository;
+import com.mordiniaa.storageservice.repositories.mysql.UserStorageRepository;
+import com.mordiniaa.storageservice.services.StorageProvider;
+import com.mordiniaa.storageservice.utils.CloudStorageServiceUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

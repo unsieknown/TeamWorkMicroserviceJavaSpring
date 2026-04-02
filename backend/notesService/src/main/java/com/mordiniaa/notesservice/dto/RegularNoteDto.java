@@ -1,6 +1,6 @@
 package com.mordiniaa.notesservice.dto;
 
-import com.mordiniaa.backend.models.note.regular.Category;
+import com.mordiniaa.notesservice.models.regular.Category;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

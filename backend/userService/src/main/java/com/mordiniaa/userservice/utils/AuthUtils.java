@@ -1,8 +1,11 @@
 package com.mordiniaa.userservice.utils;
 
+import com.mordiniaa.userservice.security.UserContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -12,8 +15,23 @@ import java.util.UUID;
 public class AuthUtils {
 
     public UUID authenticatedUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        JwtPrincipal principal = (JwtPrincipal) authentication.getPrincipal();
-        return principal.userId();
+
+        Jwt jwt = UserContext.get();
+
+        if (jwt != null) {
+            return UUID.fromString(jwt.getSubject());
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth instanceof JwtAuthenticationToken jwtToken) {
+
+            Jwt userJwt = jwtToken.getToken();
+
+            if ("user".equals(userJwt.getClaim("type"))) {
+                return UUID.fromString(userJwt.getSubject());
+            }
+        }
+
+        throw new RuntimeException("No User Context Available");
     }
 }

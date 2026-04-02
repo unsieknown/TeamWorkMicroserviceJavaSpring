@@ -1,16 +1,15 @@
 package com.mordiniaa.storageservice.controllers;
 
-import com.mordiniaa.backend.dto.file.FileNodeDto;
-import com.mordiniaa.backend.exceptions.UnsupportedOperationException;
-import com.mordiniaa.backend.payload.APIExceptionResponse;
-import com.mordiniaa.backend.payload.APIResponse;
-import com.mordiniaa.backend.payload.PageMeta;
-import com.mordiniaa.backend.payload.nodeDto.CollectionNodeDtoResponse;
-import com.mordiniaa.backend.security.utils.AuthUtils;
-import com.mordiniaa.backend.services.storage.cloudStorage.CloudStorageServiceCreateResource;
-import com.mordiniaa.backend.services.storage.cloudStorage.CloudStorageServiceDeleteResource;
-import com.mordiniaa.backend.services.storage.cloudStorage.CloudStorageServiceGetResource;
-import com.mordiniaa.backend.services.storage.cloudStorage.CloudStorageServiceMoveResource;
+import com.mordiniaa.storageservice.dto.FileNodeDto;
+import com.mordiniaa.storageservice.respnses.APIExceptionResponse;
+import com.mordiniaa.storageservice.respnses.APIResponse;
+import com.mordiniaa.storageservice.respnses.CollectionNodeDtoResponse;
+import com.mordiniaa.storageservice.respnses.PageMeta;
+import com.mordiniaa.storageservice.services.cloudStorage.CloudStorageServiceCreateResource;
+import com.mordiniaa.storageservice.services.cloudStorage.CloudStorageServiceDeleteResource;
+import com.mordiniaa.storageservice.services.cloudStorage.CloudStorageServiceGetResource;
+import com.mordiniaa.storageservice.services.cloudStorage.CloudStorageServiceMoveResource;
+import com.mordiniaa.storageservice.utils.AuthUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -33,7 +32,7 @@ import java.util.UUID;
 @Tag(name = "Cloud Storage Controller", description = "Controller For Managing Cloud storage. Required Authentication")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/storage/resource")
+@RequestMapping("/storage/resource")
 public class CloudStorageController {
 
     private final AuthUtils authUtils;

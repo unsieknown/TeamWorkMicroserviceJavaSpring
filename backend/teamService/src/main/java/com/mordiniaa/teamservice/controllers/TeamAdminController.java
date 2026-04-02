@@ -1,10 +1,9 @@
 package com.mordiniaa.teamservice.controllers;
 
-import com.mordiniaa.backend.dto.team.TeamShortDto;
-import com.mordiniaa.backend.exceptions.UnsupportedOperationException;
-import com.mordiniaa.backend.payload.APIResponse;
-import com.mordiniaa.backend.request.team.TeamCreationRequest;
-import com.mordiniaa.backend.services.team.TeamAdminService;
+import com.mordiniaa.teamservice.dto.TeamShortDto;
+import com.mordiniaa.teamservice.requests.TeamCreationRequest;
+import com.mordiniaa.teamservice.responses.APIResponse;
+import com.mordiniaa.teamservice.services.TeamAdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/admin/team")
+@RequestMapping("/teams/admin")
 public class TeamAdminController {
 
     private final TeamAdminService teamAdminService;

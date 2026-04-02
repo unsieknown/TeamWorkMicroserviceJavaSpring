@@ -1,6 +1,5 @@
 package com.mordiniaa.teamservice.dto;
 
-import com.mordiniaa.backend.dto.user.UserDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

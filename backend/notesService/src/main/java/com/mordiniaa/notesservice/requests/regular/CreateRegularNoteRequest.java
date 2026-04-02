@@ -1,7 +1,7 @@
 package com.mordiniaa.notesservice.requests.regular;
 
-import com.mordiniaa.backend.models.note.regular.Category;
-import com.mordiniaa.backend.request.note.CreateNoteRequest;
+import com.mordiniaa.notesservice.models.regular.Category;
+import com.mordiniaa.notesservice.requests.CreateNoteRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

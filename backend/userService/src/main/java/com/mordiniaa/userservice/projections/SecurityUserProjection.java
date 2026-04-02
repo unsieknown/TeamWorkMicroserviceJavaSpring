@@ -1,7 +1,8 @@
 package com.mordiniaa.userservice.projections;
 
 
-import com.mordiniaa.userservice.models.mysql.Role;
+import com.mordiniaa.userservice.models.AppRole;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ public interface SecurityUserProjection {
 
     String getPassword();
 
-    Role getRole();
+    AppRole getAppRole();
 
     boolean getAccountNonExpired();
 

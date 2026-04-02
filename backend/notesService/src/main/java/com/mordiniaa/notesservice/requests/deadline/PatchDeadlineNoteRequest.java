@@ -1,8 +1,8 @@
 package com.mordiniaa.notesservice.requests.deadline;
 
-import com.mordiniaa.backend.models.note.deadline.Priority;
-import com.mordiniaa.backend.models.note.deadline.Status;
-import com.mordiniaa.backend.request.note.PatchNoteRequest;
+import com.mordiniaa.notesservice.models.deadline.Priority;
+import com.mordiniaa.notesservice.models.deadline.Status;
+import com.mordiniaa.notesservice.requests.PatchNoteRequest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

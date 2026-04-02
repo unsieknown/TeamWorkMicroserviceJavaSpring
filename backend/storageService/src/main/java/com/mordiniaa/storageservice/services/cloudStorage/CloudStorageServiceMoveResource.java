@@ -1,13 +1,13 @@
 package com.mordiniaa.storageservice.services.cloudStorage;
 
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.exceptions.FileNodeNotFound;
-import com.mordiniaa.backend.models.file.cloudStorage.FileNode;
-import com.mordiniaa.backend.models.file.cloudStorage.FileNodeBaseMeta;
-import com.mordiniaa.backend.models.file.cloudStorage.NodeType;
-import com.mordiniaa.backend.models.file.cloudStorage.UserStorage;
-import com.mordiniaa.backend.repositories.mysql.FileNodeRepository;
-import com.mordiniaa.backend.utils.CloudStorageServiceUtils;
+import com.mordiniaa.storageservice.exceptions.BadRequestException;
+import com.mordiniaa.storageservice.exceptions.FileNodeNotFound;
+import com.mordiniaa.storageservice.models.cloudStorage.FileNode;
+import com.mordiniaa.storageservice.models.cloudStorage.FileNodeBaseMeta;
+import com.mordiniaa.storageservice.models.cloudStorage.NodeType;
+import com.mordiniaa.storageservice.models.cloudStorage.UserStorage;
+import com.mordiniaa.storageservice.repositories.mysql.FileNodeRepository;
+import com.mordiniaa.storageservice.utils.CloudStorageServiceUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

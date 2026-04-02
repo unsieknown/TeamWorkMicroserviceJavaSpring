@@ -1,15 +1,15 @@
 package com.mordiniaa.notesservice.controllers;
 
-import com.mordiniaa.backend.config.NotesConstants;
-import com.mordiniaa.backend.dto.note.NoteDto;
-import com.mordiniaa.backend.payload.APIExceptionResponse;
-import com.mordiniaa.backend.payload.nodeDto.NoteDtoApiResponse;
-import com.mordiniaa.backend.payload.note.NoteDtoCollectionResponse;
-import com.mordiniaa.backend.request.note.CreateNoteRequest;
-import com.mordiniaa.backend.request.note.PatchNoteRequest;
-import com.mordiniaa.backend.security.utils.AuthUtils;
-import com.mordiniaa.backend.services.notes.NotesService;
-import com.mordiniaa.backend.utils.PageResult;
+import com.mordiniaa.notesservice.config.NotesConstants;
+import com.mordiniaa.notesservice.dto.NoteDto;
+import com.mordiniaa.notesservice.requests.CreateNoteRequest;
+import com.mordiniaa.notesservice.requests.PatchNoteRequest;
+import com.mordiniaa.notesservice.responses.APIExceptionResponse;
+import com.mordiniaa.notesservice.responses.NoteDtoApiResponse;
+import com.mordiniaa.notesservice.responses.NoteDtoCollectionResponse;
+import com.mordiniaa.notesservice.services.NotesService;
+import com.mordiniaa.notesservice.utils.AuthUtils;
+import com.mordiniaa.notesservice.utils.PageResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -37,7 +37,7 @@ import java.util.UUID;
 )
 @Validated
 @RestController
-@RequestMapping("/api/v1/notes")
+@RequestMapping("/notes")
 @RequiredArgsConstructor
 public class NotesController {
 

@@ -1,6 +1,6 @@
 package com.mordiniaa.notesservice.models.deadline;
 
-import com.mordiniaa.backend.models.note.Note;
+import com.mordiniaa.notesservice.models.Note;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.TypeAlias;

@@ -1,7 +1,8 @@
 package com.mordiniaa.notesservice.mappers.modelMappers;
 
-import com.mordiniaa.backend.models.note.Note;
-import com.mordiniaa.backend.request.note.NoteRequest;
+
+import com.mordiniaa.notesservice.models.Note;
+import com.mordiniaa.notesservice.requests.NoteRequest;
 
 import java.util.Set;
 

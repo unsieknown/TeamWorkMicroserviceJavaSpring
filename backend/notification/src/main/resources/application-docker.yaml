@@ -1,0 +1,7 @@
+spring:
+  main:
+    banner-mode: off
+  application:
+    name: notification
+  config:
+    import: configserver:http://config-server:8888

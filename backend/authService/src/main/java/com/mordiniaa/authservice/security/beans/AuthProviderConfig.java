@@ -1,7 +1,7 @@
 package com.mordiniaa.authservice.security.beans;
 
-import com.mordiniaa.backend.security.service.user.CustomUserDetailsPasswordService;
-import com.mordiniaa.backend.security.service.user.CustomUserDetailsService;
+import com.mordiniaa.authservice.security.service.user.CustomUserDetailsPasswordService;
+import com.mordiniaa.authservice.security.service.user.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;

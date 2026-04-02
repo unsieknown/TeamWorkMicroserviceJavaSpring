@@ -1,24 +1,22 @@
 package com.mordiniaa.authservice.security.service.user;
 
-import com.mordiniaa.backend.models.user.mysql.Role;
+
+import com.mordiniaa.authservice.security.model.user.AppRole;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
-public interface SecurityUserProjection {
+@Getter
+@Setter
+public class SecurityUserProjection {
 
-    UUID getUserId();
-
-    String getUsername();
-
-    String getPassword();
-
-    Role getRole();
-
-    boolean getAccountNonExpired();
-
-    boolean getAccountNonLocked();
-
-    boolean getCredentialsNonExpired();
-
-    boolean getDeleted();
+    UUID userId;
+    String username;
+    String password;
+    AppRole appRole;
+    boolean accountNonExpired;
+    boolean accountNonLocked;
+    boolean credentialsNonExpired;
+    boolean deleted;
 }

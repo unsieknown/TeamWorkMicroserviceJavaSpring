@@ -1,6 +1,6 @@
 package com.mordiniaa.storageservice.controllers;
 
-import com.mordiniaa.backend.services.storage.profileImagesStorage.ImagesStorageService;
+import com.mordiniaa.storageservice.services.profileImagesStorage.ImagesStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

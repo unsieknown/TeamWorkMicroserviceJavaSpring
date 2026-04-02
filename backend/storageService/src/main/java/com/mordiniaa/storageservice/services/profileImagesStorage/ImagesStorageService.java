@@ -1,20 +1,21 @@
 package com.mordiniaa.storageservice.services.profileImagesStorage;
 
-import com.mordiniaa.backend.config.StorageProperties;
-import com.mordiniaa.backend.events.user.events.UserProfileImageChangedEvent;
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.exceptions.ImageNotFoundException;
-import com.mordiniaa.backend.exceptions.UnexpectedException;
-import com.mordiniaa.backend.models.file.imageStorage.ImageMetadata;
-import com.mordiniaa.backend.models.user.DbUser;
-import com.mordiniaa.backend.repositories.mongo.ImageMetadataRepository;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
-import com.mordiniaa.backend.services.storage.StorageProvider;
-import com.mordiniaa.backend.utils.CloudStorageServiceUtils;
-import com.mordiniaa.backend.utils.MongoIdUtils;
+import com.mordiniaa.storageservice.config.StorageProperties;
+import com.mordiniaa.storageservice.exceptions.BadRequestException;
+import com.mordiniaa.storageservice.exceptions.ImageNotFoundException;
+import com.mordiniaa.storageservice.exceptions.UnexpectedException;
+import com.mordiniaa.storageservice.messaging.rabbit.consume.UserMessage;
+import com.mordiniaa.storageservice.messaging.rabbit.publish.RabbitMQPublisher;
+import com.mordiniaa.storageservice.messaging.rabbit.publish.UserProfileImageChangedMessage;
+import com.mordiniaa.storageservice.models.imageStorage.ImageMetadata;
+import com.mordiniaa.storageservice.repositories.mongo.ImageMetadataRepository;
+import com.mordiniaa.storageservice.services.StorageProvider;
+import com.mordiniaa.storageservice.utils.CloudStorageServiceUtils;
+import com.mordiniaa.storageservice.utils.MongoIdUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ImagesStorageService {
@@ -35,9 +37,8 @@ public class ImagesStorageService {
     private final ImageMetadataRepository imageMetadataRepository;
     private final StorageProvider storageProvider;
     private final StorageProperties storageProperties;
-    private final UserRepository userRepository;
     private final CloudStorageServiceUtils cloudStorageServiceUtils;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final RabbitMQPublisher rabbitMQPublisher;
 
     public ResponseEntity<StreamingResponseBody> getProfileImage(String key) {
 
@@ -67,12 +68,12 @@ public class ImagesStorageService {
     }
 
     @Transactional
-    public void addProfileImage(DbUser user, MultipartFile file) {
+    public String addProfileImage(UUID userId, MultipartFile file) {
 
         StorageProperties.ProfileImages profileImages = storageProperties.getProfileImages();
         String mimetype = baseImageValidation(file, profileImages.getMimeTypes());
 
-        ImageMetadata metadata = imageMetadataRepository.findImageMetadataByOwnerId(user.getUserId())
+        ImageMetadata metadata = imageMetadataRepository.findImageMetadataByOwnerId(userId)
                 .orElse(null);
         if (metadata != null)
             imageMetadataRepository.deleteById(metadata.getId());
@@ -86,6 +87,7 @@ public class ImagesStorageService {
         String newImageName = cloudStorageServiceUtils.buildStorageKey().concat(".".concat(ext));
         String profileImagesPath = profileImages.getPath();
 
+        String imageKey;
         try {
             addImage(
                     profileImagesPath,
@@ -100,20 +102,21 @@ public class ImagesStorageService {
                     .originalName(originalName)
                     .storedName(newImageName)
                     .extension(ext)
-                    .ownerId(user.getUserId())
+                    .ownerId(userId)
                     .size(file.getSize())
                     .build()
             );
 
-            updateUserImageKey(user.getUserId(), savedMeta.getId().toHexString());
+            imageKey = savedMeta.getId().toHexString();
+            updateUserImageKey(userId, imageKey);
         } catch (Exception e) {
             if (metadata != null) {
                 imageMetadataRepository.save(metadata);
-                updateUserImageKey(user.getUserId(), metadata.getId().toHexString());
+                updateUserImageKey(userId, metadata.getId().toHexString());
             } else {
-                updateUserImageKey(user.getUserId(), profileImages.getDefaultImageKey());
+                updateUserImageKey(userId, profileImages.getDefaultImageKey());
             }
-            throw new RuntimeException(e);
+            throw new UnexpectedException("Unknown Error While Saving Image");
         }
 
         if (metadata != null) {
@@ -122,6 +125,8 @@ public class ImagesStorageService {
                     metadata.getStoredName()
             );
         }
+
+        return imageKey;
     }
 
     public void addImage(String profileImagesPath, String storedName, String ext, int width, int height, MultipartFile file) {
@@ -153,9 +158,12 @@ public class ImagesStorageService {
     }
 
     @Transactional
-    public void setDefaultImage(DbUser user) {
+    @RabbitListener(queues = "${rabbitmq.queue.defaultImageKey}")
+    public void setDefaultImage(UserMessage message) {
 
-        ImageMetadata metadata = imageMetadataRepository.findImageMetadataByOwnerId(user.getUserId())
+        UUID userId = message.userId();
+
+        ImageMetadata metadata = imageMetadataRepository.findImageMetadataByOwnerId(userId)
                 .orElse(null);
 
         if (metadata != null) {
@@ -163,7 +171,7 @@ public class ImagesStorageService {
             storageProvider.delete(storageProperties.getProfileImages().getPath(), storageName);
         }
 
-        updateUserImageKey(user.getUserId(), storageProperties.getProfileImages().getDefaultImageKey());
+        updateUserImageKey(userId, storageProperties.getProfileImages().getDefaultImageKey());
 
         if (metadata != null)
             imageMetadataRepository.deleteById(metadata.getId());
@@ -171,10 +179,8 @@ public class ImagesStorageService {
 
     @Transactional
     public void updateUserImageKey(UUID userId, String imageKey) {
-
-        userRepository.updateImageKeyByUserId(imageKey, userId);
-        applicationEventPublisher.publishEvent(
-                new UserProfileImageChangedEvent(userId, imageKey)
+        rabbitMQPublisher.publishUserProfileChangedMessage(
+                new UserProfileImageChangedMessage(userId, imageKey)
         );
     }
 

@@ -1,15 +1,91 @@
 spring:
-  h2:
-    console:
-      enabled: true
+  data:
+    mongodb:
+      host: ${MONGO_DB_HOST}
+      port: ${MONGO_DB_PORT}
+      database: ${MONGO_DB_NAME:team-work-storage}
+      username: ${MONGO_DB_USER:team-work-storage-admin}
+      password: ${MONGO_DB_PASSWORD:superSecretPassword}
+      authentication-database: ${MONGO_DB_NAME:team-work-storage}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: mysql
   datasource:
-    url: jdbc:h2:mem:test
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:team-work-storage-s}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  flyway:
+    user: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:team-work-storage-s}
+    locations: classpath:db/migration
+    schemas: ${MYSQL_DATABASE:team-work-storage-s}
+  rabbitmq:
+    password: guest
+    username: guest
+    port: 5672
+    host: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8086/.well-known/jwks.json
 
 server:
-  port: 8084
+  port: 8083
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://localhost:8761/eureka
+
+rabbitmq:
+  exchange:
+    user: "user.exchange"
+    storage: "storage.exchange"
+  queue:
+    defaultImageKey: "user.defaultImageKey"
+    userCreate: "user.create"
+  routing:
+    received:
+      user:
+        create: "user.create"
+        defaultImage: "user.profile.image.default"
+    published:
+      user:
+        imageChanged: "user.profile.image.changed"
+
+interservice:
+  services:
+    auth_service: "http://auth-service"
+    current_service: "http://storage-service"
+
+storage:
+  profileImages:
+    path: ${PROFILE_IMAGES_ROOT:./profile_images_storage}
+    mimeTypes:
+      - image/jpeg
+      - image/png
+    profileWidth: 512
+    profileHeight: 512
+    defaultImageKey: defaultProfileImage
+    defaultImagePath: static/images/defaultProfileImage.png
+  cloudStorage:
+    path: ${STORAGE_ROOT:./files_storage}
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

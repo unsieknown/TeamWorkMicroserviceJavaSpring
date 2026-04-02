@@ -15,8 +15,6 @@ import java.util.List;
 public class StorageProperties {
 
     private ProfileImages profileImages;
-    private CloudStorage cloudStorage;
-    private BannedIps bannedIps;
 
     @Getter
     @Setter
@@ -27,17 +25,5 @@ public class StorageProperties {
         private int profileHeight;
         private String defaultImageKey;
         private String defaultImagePath;
-    }
-
-    @Getter
-    @Setter
-    public static class CloudStorage {
-        private String path;
-    }
-
-    @Getter
-    @Setter
-    public static class BannedIps {
-        private String path;
     }
 }

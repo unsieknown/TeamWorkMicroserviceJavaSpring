@@ -4,14 +4,13 @@ import com.mordiniaa.userservice.config.StorageProperties;
 import com.mordiniaa.userservice.dto.UserDto;
 import com.mordiniaa.userservice.events.events.UserCreatedEvent;
 import com.mordiniaa.userservice.events.events.UserDeleteEvent;
-import com.mordiniaa.userservice.events.events.UserUsernameChangedEvent;
 import com.mordiniaa.userservice.exceptions.*;
 import com.mordiniaa.userservice.mappers.UserMapper;
-import com.mordiniaa.userservice.models.mysql.*;
-import com.mordiniaa.userservice.repositories.mysql.AddressRepository;
-import com.mordiniaa.userservice.repositories.mysql.ContactRepository;
-import com.mordiniaa.userservice.repositories.mysql.RoleRepository;
-import com.mordiniaa.userservice.repositories.mysql.UserRepository;
+import com.mordiniaa.userservice.models.*;
+import com.mordiniaa.userservice.repositories.AddressRepository;
+import com.mordiniaa.userservice.repositories.ContactRepository;
+import com.mordiniaa.userservice.repositories.RoleRepository;
+import com.mordiniaa.userservice.repositories.UserRepository;
 import com.mordiniaa.userservice.requests.user.AddressRequest;
 import com.mordiniaa.userservice.requests.user.ContactDataRequest;
 import com.mordiniaa.userservice.requests.user.CreateUserRequest;
@@ -20,6 +19,8 @@ import com.mordiniaa.userservice.requests.user.patch.PatchUserAddressRequest;
 import com.mordiniaa.userservice.requests.user.patch.PatchUserContactDataRequest;
 import com.mordiniaa.userservice.requests.user.patch.PatchUserDataRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,16 +33,19 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserAdminService {
+
+    @Value("${defaultImageKey}")
+    private String defaultImageKey;
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final StorageProperties storageProperties;
     private final UserMapper userMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final MongoUserService mongoUserService;
     private final UserService userService;
     private final AddressRepository addressRepository;
     private final ContactRepository contactRepository;
@@ -70,7 +74,7 @@ public class UserAdminService {
         newUser.setLastName(lastName);
         newUser.setRole(userRole);
         newUser.setUsername(login);
-        newUser.setImageKey(storageProperties.getProfileImages().getDefaultImageKey());
+        newUser.setImageKey(defaultImageKey);
 
         //Address
         var addr = request.getAddress();
@@ -101,7 +105,7 @@ public class UserAdminService {
     @Transactional
     public void updateUserBasicData(UUID userId, PatchUserDataRequest request) {
 
-        mongoUserService.checkUserAvailability(userId);
+        userService.checkUserAvailability(userId);
 
         String firstName = request.getFirstname();
         String lastName = request.getLastname();
@@ -121,16 +125,12 @@ public class UserAdminService {
 
         user.setUsername(username);
         userRepository.save(user);
-
-        applicationEventPublisher.publishEvent(
-                new UserUsernameChangedEvent(userId, username)
-        );
     }
 
     @Transactional
     public void updateUserAddressData(UUID userId, Long addressId, PatchUserAddressRequest request) {
 
-        mongoUserService.checkUserAvailability(userId);
+        userService.checkUserAvailability(userId);
 
         User user = userService.getUser(userId);
         Address address;
@@ -158,7 +158,7 @@ public class UserAdminService {
     @Transactional
     public void updateUserContactData(UUID userId, Long contactDataId, PatchUserContactDataRequest request) {
 
-        mongoUserService.checkUserAvailability(userId);
+        userService.checkUserAvailability(userId);
 
         User user = userService.getUser(userId);
         Contact contact;
@@ -185,7 +185,7 @@ public class UserAdminService {
     public void deactivateUser(UUID userId) {
 
         try {
-            mongoUserService.checkUserAvailability(userId);
+            userService.checkUserAvailability(userId);
         } catch (UsersNotAvailableException e) {
             throw new UsersNotAvailableException("User Already Not Available");
         }

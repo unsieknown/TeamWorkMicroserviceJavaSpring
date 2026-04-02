@@ -8,6 +8,7 @@ import com.mordiniaa.userservice.requests.user.patch.PatchUserContactDataRequest
 import com.mordiniaa.userservice.requests.user.patch.PatchUserDataRequest;
 import com.mordiniaa.userservice.services.UserAdminService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,14 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/admin/user")
+@RequiredArgsConstructor
+@RequestMapping("/users/admin")
 public class UserAdminController {
 
     private final UserAdminService userAdminService;
-
-    public UserAdminController(UserAdminService userAdminService) {
-        this.userAdminService = userAdminService;
-    }
 
     @PostMapping
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {

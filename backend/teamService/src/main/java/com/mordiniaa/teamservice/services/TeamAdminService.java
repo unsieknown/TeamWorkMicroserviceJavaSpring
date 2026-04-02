@@ -1,22 +1,21 @@
 package com.mordiniaa.teamservice.services;
 
-import com.mordiniaa.backend.dto.team.TeamShortDto;
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.exceptions.TeamNotFoundException;
-import com.mordiniaa.backend.exceptions.UnsupportedOperationException;
-import com.mordiniaa.backend.exceptions.UsersNotAvailableException;
-import com.mordiniaa.backend.mappers.team.TeamMapper;
-import com.mordiniaa.backend.models.team.Team;
-import com.mordiniaa.backend.models.user.mysql.AppRole;
-import com.mordiniaa.backend.models.user.mysql.User;
-import com.mordiniaa.backend.repositories.mysql.TeamRepository;
-import com.mordiniaa.backend.repositories.mysql.UserRepository;
-import com.mordiniaa.backend.request.team.TeamCreationRequest;
-import com.mordiniaa.backend.services.user.UserService;
+import com.mordiniaa.teamservice.clients.user.UserServiceClient;
+import com.mordiniaa.teamservice.dto.TeamShortDto;
+import com.mordiniaa.teamservice.exceptions.BadRequestException;
+import com.mordiniaa.teamservice.exceptions.TeamNotFoundException;
+import com.mordiniaa.teamservice.exceptions.UsersNotAvailableException;
+import com.mordiniaa.teamservice.mappers.TeamMapper;
+import com.mordiniaa.teamservice.messaging.rabbit.consume.UserMessage;
+import com.mordiniaa.teamservice.models.Team;
+import com.mordiniaa.teamservice.repositories.TeamRepository;
+import com.mordiniaa.teamservice.requests.TeamCreationRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -24,18 +23,17 @@ import java.util.UUID;
 public class TeamAdminService {
 
     private final TeamRepository teamRepository;
-    private final UserService userService;
     private final TeamService teamService;
     private final TeamMapper teamMapper;
-    private final UserRepository userRepository;
+    private final UserServiceClient userClient;
 
     @Transactional
     public TeamShortDto createTeam(TeamCreationRequest teamCreationRequest) {
 
         String teamName = teamCreationRequest.getTeamName().trim();
         String lowerTeamName = teamName.toLowerCase();
-        if (teamRepository.existsByTeamNameIgnoreCase(lowerTeamName))
-            throw new TeamNotFoundException();
+        if (teamRepository.existsByTeamNameIgnoreCaseAndActiveTrue(lowerTeamName))
+            throw new BadRequestException("Team Already Exists");
 
         Team team = new Team(lowerTeamName);
         team.setPresentationName(teamName);
@@ -46,21 +44,22 @@ public class TeamAdminService {
     @Transactional
     public TeamShortDto assignManagerToTeam(UUID userId, UUID teamId) {
 
-        User user = userService.findNonDeletedUserAndAppRole(userId, AppRole.ROLE_MANAGER);
+        boolean isValidManager = userClient.existsUser(userId);
+        if (!isValidManager)
+            throw new BadRequestException("User is not a manager or does not exist");
 
         Team team = teamRepository.findTeamByTeamIdAndActiveTrue(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        if (team.getManager() != null) {
-            User manager = team.getManager();
-            if (manager.getUserId().equals(userId))
+        if (team.getManagerId() != null) {
+            if (team.getManagerId().equals(userId))
                 // This manager Already Assigned
                 throw new BadRequestException("Manager Already Assigned");
             // Other Manager Already Assigned
             throw new BadRequestException("Other Manager Is Already Assigned");
         }
 
-        team.setManager(user);
+        team.setManagerId(userId);
         return teamMapper.toShortDto(teamRepository.save(team));
     }
 
@@ -68,7 +67,7 @@ public class TeamAdminService {
     public void removeManagerFromTeam(UUID teamId) {
 
         Team team = teamService.getTeam(teamId);
-        if (team.getManager() == null)
+        if (team.getManagerId() == null)
             throw new UsersNotAvailableException("Manager Not Found For Team");
 
         team.removeManager();
@@ -81,6 +80,7 @@ public class TeamAdminService {
         Team team = teamRepository.findTeamByTeamIdAndActiveTrue(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
+        team.setTeamName(team.getTeamName() + "_" + new Random().nextInt(100, 999));
         team.deactivate();
         teamRepository.save(team);
     }
@@ -91,17 +91,19 @@ public class TeamAdminService {
         Team team = teamRepository.findTeamByTeamIdAndActiveTrue(teamId)
                 .orElseThrow(TeamNotFoundException::new);
 
-        User manager = team.getManager();
-        if (manager != null && manager.getUserId().equals(userId))
+        UUID managerId = team.getManagerId();
+        if (managerId != null && managerId.equals(userId))
             throw new BadRequestException("You cannot add Manager as a team member");
 
         boolean isMember = team.getTeamMembers().stream()
-                .anyMatch(user -> user.getUserId().equals(userId));
+                .anyMatch(uId -> uId.equals(userId));
         if (isMember)
             throw new BadRequestException("User Already Team Member");
 
-        User user = userService.getUser(userId);
-        team.addMember(user);
+        boolean isValidManager = userClient.existsUser(userId);
+        if (!isValidManager)
+            throw new BadRequestException("User is not a manager or does not exist");
+        team.addMember(userId);
 
         teamRepository.save(team);
     }
@@ -110,27 +112,27 @@ public class TeamAdminService {
     public void removeFromTeam(UUID userId, UUID teamId) {
 
         Team team = teamService.getTeam(teamId);
-        User manager = team.getManager();
-        if (manager != null && manager.getUserId().equals(userId))
+        UUID managerId = team.getManagerId();
+        if (managerId != null && managerId.equals(userId))
             throw new UnsupportedOperationException("Cannot Remove Manager From Members List");
 
-        User user = team.getTeamMembers()
+        UUID uId = team.getTeamMembers()
                 .stream()
-                .filter(member -> member.getUserId().equals(userId))
+                .filter(memberId -> memberId.equals(userId))
                 .findFirst()
                 .orElseThrow(UsersNotAvailableException::new);
-        team.removeMember(user);
 
+        team.removeMember(uId);
         teamRepository.save(team);
     }
 
     @Transactional
-    public void removeFromTeamByEvent(UUID userId) {
+    @RabbitListener(queues = "${rabbitmq.queue.userDelete}")
+    public void removeFromTeamByEvent(UserMessage message) {
 
-        User user = userService.getUser(userId);
-        if (user.getRole().getAppRole().equals(AppRole.ROLE_MANAGER))
-            user.getOwnedTeams().forEach(t -> removeManagerFromTeam(t.getTeamId()));
+        if (message.appRole().equals(UserMessage.AppRole.ROLE_MANAGER))
+            teamRepository.removeManagerFromAllTeams(message.userId());
         else
-            user.getTeams().forEach(t -> removeFromTeam(userId, t.getTeamId()));
+            teamRepository.removeMemerFromAllTeams(message.userId());
     }
 }

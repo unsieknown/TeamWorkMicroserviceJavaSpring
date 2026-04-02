@@ -1,5 +1,6 @@
 package com.mordiniaa.storageservice.repositories.mysql;
 
+import com.mordiniaa.storageservice.models.cloudStorage.UserStorage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

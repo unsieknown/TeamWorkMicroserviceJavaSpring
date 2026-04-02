@@ -1,26 +1,55 @@
 spring:
-  h2:
-    console:
-      enabled: true
   datasource:
-    url: jdbc:h2:mem:test
-  rabbitmq: # TODO: Improve For Security
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:team-work-user-s}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: mysql
+  flyway:
+    user: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/${MYSQL_DATABASE:team-work-user-s}
+    locations: classpath:db/migration
+    schemas: ${MYSQL_DATABASE:team-work-user-s}
+  rabbitmq:
     password: guest
     username: guest
     port: 5672
     host: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8086/.well-known/jwks.json
 
 server:
   port: 8081
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://localhost:8761/eureka
 
+interservice:
+  services:
+    current_service: "http://user-service"
+    storage_service: "http://storage-service"
+    auth_service: "http://auth-service"
+
 rabbitmq:
-  exchange: "user.exchange"
+  exchange:
+    user: "user.exchange"
   queue:
     imageKey: "user.imageKey"
   routing:
@@ -31,3 +60,13 @@ rabbitmq:
     received:
       user:
         imageChanged: "user.profile.image.changed"
+        defaultImage: "user.profile.image.default"
+
+defaultImageKey: defaultProfileImage
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

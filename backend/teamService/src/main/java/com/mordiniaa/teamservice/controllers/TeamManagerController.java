@@ -1,12 +1,12 @@
 package com.mordiniaa.teamservice.controllers;
 
-import com.mordiniaa.backend.dto.team.TeamDetailedDto;
-import com.mordiniaa.backend.dto.team.TeamShortDto;
-import com.mordiniaa.backend.payload.APIResponse;
-import com.mordiniaa.backend.payload.CollectionResponse;
-import com.mordiniaa.backend.payload.PageMeta;
-import com.mordiniaa.backend.security.utils.AuthUtils;
-import com.mordiniaa.backend.services.team.TeamService;
+import com.mordiniaa.teamservice.dto.TeamDetailedDto;
+import com.mordiniaa.teamservice.dto.TeamShortDto;
+import com.mordiniaa.teamservice.responses.APIResponse;
+import com.mordiniaa.teamservice.responses.CollectionResponse;
+import com.mordiniaa.teamservice.responses.PageMeta;
+import com.mordiniaa.teamservice.services.TeamService;
+import com.mordiniaa.teamservice.utils.AuthUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/manager/team")
+@RequestMapping("/teams/manager")
 public class TeamManagerController {
 
     private final AuthUtils authUtils;

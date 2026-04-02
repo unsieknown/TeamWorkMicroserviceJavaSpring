@@ -1,12 +1,12 @@
 package com.mordiniaa.notesservice.mappers;
 
-import com.mordiniaa.backend.dto.note.NoteDto;
-import com.mordiniaa.backend.exceptions.UnexpectedException;
-import com.mordiniaa.backend.mappers.note.dtoMappers.AbstractNoteDtoMapper;
-import com.mordiniaa.backend.mappers.note.modelMappers.AbstractNoteModelMapper;
-import com.mordiniaa.backend.models.note.Note;
-import com.mordiniaa.backend.request.note.NoteRequest;
-import com.mordiniaa.backend.request.note.PatchNoteRequest;
+import com.mordiniaa.notesservice.dto.NoteDto;
+import com.mordiniaa.notesservice.exceptions.UnexpectedException;
+import com.mordiniaa.notesservice.mappers.dtoMappers.AbstractNoteDtoMapper;
+import com.mordiniaa.notesservice.mappers.modelMappers.AbstractNoteModelMapper;
+import com.mordiniaa.notesservice.models.Note;
+import com.mordiniaa.notesservice.requests.NoteRequest;
+import com.mordiniaa.notesservice.requests.PatchNoteRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

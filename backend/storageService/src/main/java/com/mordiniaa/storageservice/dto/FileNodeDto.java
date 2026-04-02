@@ -1,6 +1,6 @@
 package com.mordiniaa.storageservice.dto;
 
-import com.mordiniaa.backend.models.file.cloudStorage.NodeType;
+import com.mordiniaa.storageservice.models.cloudStorage.NodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

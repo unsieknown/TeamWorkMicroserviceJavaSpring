@@ -1,8 +1,8 @@
 package com.mordiniaa.teamservice.mappers;
 
-import com.mordiniaa.backend.dto.team.TeamDetailedDto;
-import com.mordiniaa.backend.dto.team.TeamShortDto;
-import com.mordiniaa.backend.models.team.Team;
+import com.mordiniaa.teamservice.dto.TeamDetailedDto;
+import com.mordiniaa.teamservice.dto.TeamShortDto;
+import com.mordiniaa.teamservice.models.Team;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

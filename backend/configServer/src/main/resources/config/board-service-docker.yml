@@ -1,8 +1,45 @@
+spring:
+  data:
+    mongodb:
+      database: ${MONGO_DB_NAME}
+      username: ${MONGO_DB_USER}
+      password: ${MONGO_DB_PASSWORD}
+      port: ${MONGO_DB_PORT}
+      host: ${MONGO_DB_HOST}
+      authentication-database: ${MONGO_DB_NAME}
+  rabbitmq:
+    password: guest
+    username: guest
+    port: 5672
+    host: rabbitmq
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8086/.well-known/jwks.json
+
 server:
-  port: 8086
+  port: 8085
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://eureka:8761/eureka
+
+interservice:
+  services:
+    auth_service: "http://auth-service"
+    user_service: "http://user-service"
+    team_service: "http://team-service"
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

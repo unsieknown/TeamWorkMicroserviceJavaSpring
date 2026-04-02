@@ -1,0 +1,6 @@
+use `team-work-user-s`;
+
+INSERT INTO `roles` (role_id, app_role)
+VALUES (1 ,'ROLE_ADMIN'),
+       (2 ,'ROLE_MANAGER'),
+       (3 ,'ROLE_USER');

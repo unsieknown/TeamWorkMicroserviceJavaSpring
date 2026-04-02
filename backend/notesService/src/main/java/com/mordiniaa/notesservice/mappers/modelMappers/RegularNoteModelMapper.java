@@ -1,10 +1,10 @@
 package com.mordiniaa.notesservice.mappers.modelMappers;
 
-import com.mordiniaa.backend.models.note.regular.RegularNote;
-import com.mordiniaa.backend.request.note.NoteRequest;
-import com.mordiniaa.backend.request.note.regular.CreateRegularNoteRequest;
-import com.mordiniaa.backend.request.note.regular.PatchRegularNoteRequest;
-import com.mordiniaa.backend.request.note.regular.RegularNoteRequest;
+import com.mordiniaa.notesservice.models.regular.RegularNote;
+import com.mordiniaa.notesservice.requests.NoteRequest;
+import com.mordiniaa.notesservice.requests.regular.CreateRegularNoteRequest;
+import com.mordiniaa.notesservice.requests.regular.PatchRegularNoteRequest;
+import com.mordiniaa.notesservice.requests.regular.RegularNoteRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;

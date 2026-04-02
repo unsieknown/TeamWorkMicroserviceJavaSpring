@@ -2,7 +2,7 @@ package com.mordiniaa.userservice.events.listeners;
 
 import com.mordiniaa.userservice.events.events.*;
 import com.mordiniaa.userservice.messaging.rabbit.publish.RabbitMQPublisher;
-import com.mordiniaa.userservice.messaging.rabbit.publish.UserIdMessage;
+import com.mordiniaa.userservice.messaging.rabbit.publish.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,20 +20,16 @@ public class UserEventListenerForRabbitForward {
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(UserDefaultImageEvent event) {
-        // TODO: Send Message By RabbitMQ to Storage Service
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handle(UserProfileImageEvent event) {
-        // TODO: Send Event By Kafka to Storage Service
+        rabbitMQPublisher.publishUserDefaultImageMessage(
+                new UserMessage(event.userid())
+        );
     }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(UserCreatedEvent event) {
         rabbitMQPublisher.publishUserCreatedMessage(
-                new UserIdMessage(event.userId())
+                new UserMessage(event.userId())
         );
     }
 
@@ -41,7 +37,7 @@ public class UserEventListenerForRabbitForward {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(UserDeleteEvent event) {
         rabbitMQPublisher.publishUserDeletedMessage(
-                new UserIdMessage(event.userId())
+                new UserMessage(event.userId())
         );
     }
 }

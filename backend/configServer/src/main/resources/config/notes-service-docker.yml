@@ -1,8 +1,34 @@
+spring:
+  data:
+    mongodb:
+      host: ${MONGO_DB_HOST}
+      port: ${MONGO_DB_PORT}
+      username: ${MONGO_DB_USER}
+      password: ${MONGO_DB_PASSWORD}
+      database: ${MONGO_DB_NAME}
+      authentication-database: ${MONGO_DB_NAME}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://auth-service:8086/.well-known/jwks.json
+
 server:
-  port: 8085
+  port: 8084
 eureka:
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    hostname: ${spring.application.name}
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
       defaultZone: http://eureka:8761/eureka
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always

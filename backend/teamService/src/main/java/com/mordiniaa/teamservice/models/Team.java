@@ -1,7 +1,5 @@
 package com.mordiniaa.teamservice.models;
 
-import com.mordiniaa.backend.models.BaseEntity;
-import com.mordiniaa.backend.models.user.mysql.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,34 +32,30 @@ public class Team extends BaseEntity {
     @Column(name = "active")
     private boolean active = true;
 
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
-    @JoinColumn(name = "manager_id", referencedColumnName = "user_id")
-    private User manager;
+    private UUID managerId;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "teams_users",
-            joinColumns = @JoinColumn(name = "team_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> teamMembers = new HashSet<>();
+    @ElementCollection
+    @CollectionTable(name = "teams_users", joinColumns = @JoinColumn(name = "team_id"))
+    @Column(name = "user_id")
+    private Set<UUID> teamMembers = new HashSet<>();
 
     public Team(String teamName) {
         this.teamName = teamName;
     }
 
     public void removeManager() {
-        this.manager = null;
+        this.managerId = null;
     }
 
     public void deactivate() {
         this.active = false;
     }
 
-    public void addMember(User user) {
-        this.teamMembers.add(user);
+    public void addMember(UUID userId) {
+        this.teamMembers.add(userId);
     }
 
-    public void removeMember(User user) {
-        this.teamMembers.remove(user);
+    public void removeMember(UUID userId) {
+        this.teamMembers.remove(userId);
     }
 }

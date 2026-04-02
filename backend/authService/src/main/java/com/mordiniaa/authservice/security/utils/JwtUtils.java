@@ -14,9 +14,6 @@ import java.time.Duration;
 @Component
 public class JwtUtils {
 
-    @Value("${security.app.jwt.secret}")
-    private String jwtSecret;
-
     public ResponseCookie getCookie(String cookieName, String value, Duration duration) {
 
         return ResponseCookie.from(cookieName, value)
@@ -25,9 +22,5 @@ public class JwtUtils {
                 .secure(false)
                 .path("/")
                 .build();
-    }
-
-    public Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
     }
 }

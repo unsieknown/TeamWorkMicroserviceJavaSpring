@@ -1,19 +1,13 @@
 package com.mordiniaa.authservice.security.service;
 
-import com.mordiniaa.backend.exceptions.InvalidJwtException;
-import com.mordiniaa.backend.security.token.JwtToken;
-import com.mordiniaa.backend.security.utils.JwtUtils;
-import io.jsonwebtoken.*;
-import jakarta.servlet.http.Cookie;
+import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.time.Duration;
+import java.security.KeyPair;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -23,95 +17,40 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${security.app.jwt.tokenName}")
-    private String tokenName;
+    private final KeyPair keyPair;
 
-    @Value("${security.app.jwt.minutesOfLife}")
-    private long accessTtlMinutes;
-
-    @Value("${security.app.jwt.issuer}")
-    private String issuer;
-
-    @Value("${security.app.jwt.audience}")
-    private String audience;
-
-    private final JwtUtils jwtUtils;
-
-    public JwtToken buildJwt(String subject, String sessionId, List<String> roles) {
+    public String buildJwt(UUID userId, List<String> roles) {
 
         Instant now = Instant.now();
-        Instant exp = now.plus(Duration.ofMinutes(accessTtlMinutes));
 
-        String role = (roles == null || roles.isEmpty()) ? null : roles.getFirst();
-
-        String jwt = Jwts.builder()
-                .issuer(issuer)
-                .subject(subject)
-                .audience().add(audience).and()
+        return Jwts.builder()
+                .issuer("auth-service")
+                .subject(userId.toString())
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(exp))
+                .expiration(Date.from(now.plusSeconds(3600)))
 
-                .claim("role", role)
-                .claim("sid", sessionId)
-                .signWith(jwtUtils.key())
+                .claim("roles", roles)
+                .claim("type", "user")
+                .signWith(keyPair.getPrivate())
                 .compact();
-
-        long ttl = exp.toEpochMilli() - now.toEpochMilli();
-        return new JwtToken(tokenName, jwt, ttl);
     }
 
-    public UUID extractUserId(Claims claims) {
-
-        String stringId = claims.getSubject();
-
-        try {
-            return UUID.fromString(stringId);
-        } catch (Exception e) {
-            throw new InvalidJwtException("JWT Token Is Invalid");
-        }
+    public String buildServiceToken(String serviceName, HttpServletRequest request) {
+        // TODO: Validate Request
+        return buildServiceToken(serviceName);
     }
 
-    public UUID extractSessionId(Claims claims) {
+    public String buildServiceToken(String serviceName) {
+        Instant now = Instant.now();
 
-        String stringId = (String) claims.get("sid");
-
-        try {
-            return UUID.fromString(stringId);
-        } catch (Exception e) {
-            throw new InvalidJwtException("JWT Token Is Invalid");
-        }
-    }
-
-    public List<String> extractRoles(Claims claims) {
-
-        String role = (String) claims.get("role");
-        return List.of(role);
-    }
-
-    public Claims parseAndValidate(String jwtToken) {
-        return Jwts.parser()
-                .verifyWith((SecretKey) jwtUtils.key())
-                .build()
-                .parseSignedClaims(jwtToken)
-                .getPayload();
-    }
-
-    public Claims parseAllowExpired(String jwtToken) {
-        try {
-            return parseAndValidate(jwtToken);
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
-        }
-    }
-
-    public String parseJwtTokenFromCookie(Cookie[] cookies) {
-        return Arrays.stream(cookies)
-                .filter(cookie -> cookie.getName().equals(tokenName))
-                .map(Cookie::getValue)
-                .findFirst().orElse(null);
-    }
-
-    public JwtToken getEmptyToken() {
-        return new JwtToken(tokenName, "", 0);
+        return Jwts.builder()
+                .issuer("auth-service")
+                .subject(serviceName)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plusSeconds(600)))
+                .claim("roles", List.of("SERVICE"))
+                .claim("type", "service")
+                .signWith(keyPair.getPrivate())
+                .compact();
     }
 }

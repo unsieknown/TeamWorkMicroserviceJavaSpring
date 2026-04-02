@@ -1,7 +1,7 @@
 package com.mordiniaa.notesservice.mappers.dtoMappers;
 
-import com.mordiniaa.backend.dto.note.DeadlineNoteDto;
-import com.mordiniaa.backend.models.note.deadline.DeadlineNote;
+import com.mordiniaa.notesservice.dto.DeadlineNoteDto;
+import com.mordiniaa.notesservice.models.deadline.DeadlineNote;
 import org.springframework.stereotype.Component;
 
 @Component

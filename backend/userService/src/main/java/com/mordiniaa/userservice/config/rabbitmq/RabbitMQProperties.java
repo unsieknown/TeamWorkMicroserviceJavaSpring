@@ -14,8 +14,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "rabbitmq")
 public class RabbitMQProperties {
 
-    private String exchange;
-
+    private Map<String, String> exchange = new HashMap<>();
     private Map<String, String> queue = new HashMap<>();
     private Routing routing;
 
@@ -25,6 +24,10 @@ public class RabbitMQProperties {
 
         private Map<String, Map<String, String>> received = new HashMap<>();
         private Map<String, Map<String, String>> published = new HashMap<>();
+    }
+
+    public String getUserExchange() {
+        return exchange.get("user");
     }
 
     public String getUserPublishedRouting(String action) {

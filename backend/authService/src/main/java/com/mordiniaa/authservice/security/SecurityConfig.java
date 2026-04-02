@@ -1,30 +1,32 @@
 package com.mordiniaa.authservice.security;
 
-import com.mordiniaa.backend.security.exceptions.AccessDeniedExceptionHandler;
-import com.mordiniaa.backend.security.exceptions.JwtAuthEntryPoint;
-import com.mordiniaa.backend.security.filters.AuditLoggingFilter;
-import com.mordiniaa.backend.security.filters.IpBlockFilter;
-import com.mordiniaa.backend.security.filters.JwtAuthenticationFilter;
-import com.mordiniaa.backend.security.filters.RateLimitFilter;
+import com.mordiniaa.authservice.security.exceptions.JwtAuthEntryPoint;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextHolderStrategy;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.security.KeyPair;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 
 
@@ -35,6 +37,19 @@ import java.util.List;
         jsr250Enabled = true
 )
 public class SecurityConfig {
+
+    @Bean
+    public JWKSource<SecurityContext> jwkSource(KeyPair keyPair) {
+
+        RSAKey rsaKey = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                .privateKey((RSAPrivateKey) keyPair.getPrivate())
+                .keyID("auth-key")
+                .build();
+
+        JWKSet jwkSet = new JWKSet(rsaKey);
+
+        return (selector, context) -> selector.select(jwkSet);
+    }
 
     @Bean
     public SecurityContextHolderStrategy securityContextHolderStrategy() {
@@ -58,52 +73,52 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter, AuditLoggingFilter auditLoggingFilter, RateLimitFilter rateLimitFilter, IpBlockFilter ipBlockFilter, JwtAuthEntryPoint jwtAuthEntryPoint, AccessDeniedExceptionHandler accessDeniedExceptionHandler) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler, JwtAuthEntryPoint jwtAuthEntryPoint, JwtDecoder jwtDecoder, JwtAuthenticationConverter jwtAuthenticationConverter) throws Exception {
         return http
                 .cors(Customizer.withDefaults())
-                .formLogin(AbstractHttpConfigurer::disable)
-                .logout(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
-//                .anonymous(AbstractHttpConfigurer::disable)
-                .csrf(csrf ->
-                        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                .ignoringRequestMatchers("/sockjs/**")
-                                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/signout").hasAnyAuthority("ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN")
+                        .requestMatchers("/auth/internal/token").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/.well-known/jwks.json").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .anyRequest().authenticated()
                 )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(config -> config
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(jwt -> jwt
+                                .decoder(jwtDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                        )
+                        .accessDeniedHandler(accessDeniedHandler)
                         .authenticationEntryPoint(jwtAuthEntryPoint)
-                        .accessDeniedHandler(accessDeniedExceptionHandler)
                 )
-                .authorizeHttpRequests(requests ->
-                        requests
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .requestMatchers("/api/csrf-token").permitAll()
-                                .requestMatchers(
-                                        "/api/v1/auth/user",
-                                        "/api/v1/auth/signout",
-                                        "/api/v1/user/image/**",
-                                        "/api/v1/storage/resource/**",
-                                        "/api/v1/notes/**"
-                                ).hasAnyRole("ADMIN", "MANAGER", "USER")
-                                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/manager/**").hasRole("MANAGER")
-                                .requestMatchers(
-                                        HttpMethod.POST,
-                                        "/api/v1/auth/signin",
-                                        "/api/v1/auth/refresh",
-                                        "/api/v1/auth/forgot-password",
-                                        "/api/v1/auth/reset-password"
-                                ).permitAll()
-                                .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
-                                .requestMatchers("/api/v1/test/**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .addFilterBefore(ipBlockFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(auditLoggingFilter, IpBlockFilter.class)
-                .addFilterAfter(rateLimitFilter, AuditLoggingFilter.class)
-                .addFilterAfter(jwtAuthenticationFilter, RateLimitFilter.class)
                 .build();
+    }
+
+    @Bean
+    public JwtDecoder jwtDecoder(KeyPair keyPair) {
+
+        NimbusJwtDecoder decoder = NimbusJwtDecoder
+                .withPublicKey((RSAPublicKey) keyPair.getPublic())
+                .build();
+
+        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer("auth-service");
+        decoder.setJwtValidator(withIssuer);
+
+        return decoder;
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        JwtGrantedAuthoritiesConverter gac = new JwtGrantedAuthoritiesConverter();
+        gac.setAuthoritiesClaimName("roles");
+        gac.setAuthorityPrefix("");
+
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(gac);
+
+        return converter;
     }
 }

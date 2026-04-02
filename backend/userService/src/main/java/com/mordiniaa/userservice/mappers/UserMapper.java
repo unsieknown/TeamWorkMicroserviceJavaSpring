@@ -1,13 +1,13 @@
 package com.mordiniaa.userservice.mappers;
 
 import com.mordiniaa.userservice.dto.UserDto;
-import com.mordiniaa.userservice.models.DbUser;
+import com.mordiniaa.userservice.models.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
 
-    public UserDto toDto(DbUser dbUser) {
+    public UserDto toDto(User dbUser) {
         return UserDto.builder()
                 .userId(dbUser.getUserId())
                 .username(dbUser.getUsername())

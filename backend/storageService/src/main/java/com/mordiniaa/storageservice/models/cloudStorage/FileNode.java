@@ -1,6 +1,6 @@
 package com.mordiniaa.storageservice.models.cloudStorage;
 
-import com.mordiniaa.backend.models.BaseEntity;
+import com.mordiniaa.storageservice.models.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

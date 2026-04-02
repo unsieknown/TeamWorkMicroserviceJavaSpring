@@ -1,6 +1,6 @@
 package com.mordiniaa.userservice.requests.user;
 
-import com.mordiniaa.userservice.models.mysql.AppRole;
+import com.mordiniaa.userservice.models.AppRole;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;

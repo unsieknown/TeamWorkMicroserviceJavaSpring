@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/user/image")
+@RequestMapping("/users/image")
 public class ProfileImageController {
 
     private final AuthUtils authUtils;

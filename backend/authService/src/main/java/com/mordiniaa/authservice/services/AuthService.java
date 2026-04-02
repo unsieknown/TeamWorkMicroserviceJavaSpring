@@ -1,147 +1,110 @@
 package com.mordiniaa.authservice.services;
 
+import com.mordiniaa.authservice.exceptions.BadRequestException;
 import com.mordiniaa.authservice.exceptions.RefreshTokenException;
-import com.mordiniaa.authservice.response.UserInfoResponse;
-import com.mordiniaa.authservice.security.service.JwtService;
+import com.mordiniaa.authservice.models.PasswordResetToken;
+import com.mordiniaa.authservice.repositories.PasswordResetTokenRepository;
+import com.mordiniaa.authservice.request.RefreshTokenRequest;
+import com.mordiniaa.authservice.request.ResetPasswordTokenRequest;
 import com.mordiniaa.authservice.security.service.token.RefreshTokenService;
 import com.mordiniaa.authservice.security.service.token.TokenService;
 import com.mordiniaa.authservice.security.service.user.SecurityUser;
-import com.mordiniaa.authservice.security.token.Token;
 import com.mordiniaa.authservice.security.token.TokenSet;
-import com.mordiniaa.authservice.security.utils.JwtUtils;
-import jakarta.servlet.http.HttpServletRequest;
+import com.mordiniaa.authservice.services.inter.UserServiceInter;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final TokenService tokenService;
-    private final UserService userService;
-    private final JwtUtils jwtUtils;
-    private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final UserServiceInter userServiceInter;
+    private final PasswordEncoder passwordEncoder;
 
-    @Transactional
-    public UserInfoResponse getUserDetails(UUID userId) {
-
-        // TODO: Connect To User Service
-        User user = userService.getUser(userId);
-        List<String> roles = List.of(user.getRole().getAppRole().toString());
-
-        return UserInfoResponse.builder()
-                .userId(user.getUserId())
-                .username(user.getUsername())
-                .email(user.getContact().getEmail())
-                .accountNonLocked(user.isAccountNonLocked())
-                .accountNonExpired(user.isAccountNonExpired())
-                .credentialsNonExpired(user.isCredentialsNonExpired())
-                .deleted(user.isDeleted())
-                .credentialsExpiryDate(user.getCredentialsExpiryDate())
-                .accountExpiryDate(user.getAccountExpiryDate())
-                .roles(roles)
-                .build();
-    }
-
-    public List<ResponseCookie> authenticate(Authentication authentication, HttpServletRequest request) {
+    public TokenSet authenticate(Authentication authentication) {
 
         SecurityUser user = (SecurityUser) authentication.getPrincipal();
+        log.info("Security user: {}", user);
 
         List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        TokenSet tokenSet = tokenService.issue(user.getUserId(), roles, request);
-
-        return createCookieResponse(
-                tokenSet.getJwtToken(),
-                tokenSet.getRefreshToken()
-        );
+        return tokenService.issue(user.getUserId(), roles);
     }
 
-    public List<ResponseCookie> refresh(HttpServletRequest request) {
+    public TokenSet refresh(RefreshTokenRequest refreshTokenRequest) {
 
-        String jwtToken = jwtService.parseJwtTokenFromCookie(request.getCookies());
-        String refreshToken = refreshTokenService.parseRefreshTokenFromCookie(request.getCookies());
-        
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+
         if (refreshToken == null) {
             throw new RefreshTokenException("Invalid Or Missing Refresh Token");
         }
 
-        TokenSet tokenSet;
-        if (jwtToken == null) {
-            tokenSet = tokenService.refreshToken(refreshToken, request);
-        } else {
-            Claims claims = jwtService.parseAllowExpired(jwtToken);
-
-            UUID userId;
-            UUID sessionId;
-            try {
-                userId = jwtService.extractUserId(claims);
-                sessionId = jwtService.extractSessionId(claims);
-            } catch (Exception e) {
-                throw new JwtException("JWT Token Is Invalid");
-            }
-
-            tokenSet = tokenService.refreshToken(
-                    userId,
-                    sessionId,
-                    refreshToken,
-                    request
-            );
-        }
-
-        return createCookieResponse(
-                tokenSet.getJwtToken(),
-                tokenSet.getRefreshToken()
-        );
+        return tokenService.refreshToken(refreshToken);
     }
 
-    public List<ResponseCookie> logout(HttpServletRequest request) {
+    @Transactional
+    public void logout(String refreshToken) {
 
-        String jwtToken = jwtService.parseJwtTokenFromCookie(request.getCookies());
-        String refreshToken = refreshTokenService.parseRefreshTokenFromCookie(request.getCookies());
+        int dotIdx = refreshToken.indexOf(".");
+        if (dotIdx < 1) throw new RefreshTokenException("Invalid Refresh Token");
 
-        Claims claims = jwtService.parseAllowExpired(jwtToken);
+        String idPart = refreshToken.substring(0, dotIdx);
+        String tokenPart = refreshToken.substring(dotIdx + 1);
 
-        if (jwtToken == null || refreshToken == null) {
-            throw new JwtException("Missing Auth Tokens");
-        }
+        long tokenId = parseTokenId(idPart);
 
-        UUID sessionId;
-        UUID userId;
+        refreshTokenService.deactivateRefreshToken(tokenId, tokenPart);
+    }
+
+    private long parseTokenId(String idPart) {
         try {
-            sessionId = jwtService.extractSessionId(claims);
-            userId = jwtService.extractUserId(claims);
-        } catch (Exception e) {
-            throw new RuntimeException();
+            return Long.parseLong(idPart);
+        } catch (NumberFormatException e) {
+            throw new RefreshTokenException("Invalid Refresh Token");
         }
-
-        TokenSet deactivatedTokens = tokenService.deactivateCookies(userId, sessionId, refreshToken);
-        return createCookieResponse(
-                deactivatedTokens.getJwtToken(),
-                deactivatedTokens.getRefreshToken()
-        );
     }
 
-    private List<ResponseCookie> createCookieResponse(Token... tokens) {
+    public void resetPassword(ResetPasswordTokenRequest request) {
 
-        List<ResponseCookie> cookies = new ArrayList<>();
-        for (Token token : tokens) {
-            ResponseCookie cookie = jwtUtils.getCookie(
-                    token.getTokenName(),
-                    token.getToken(),
-                    Duration.ofMillis(token.getTtl())
-            );
-            cookies.add(cookie);
+        String token = request.getToken();
+        String newPassword = request.getNewPassword();
+
+        UUID storedToken;
+        try {
+            storedToken = UUID.fromString(token);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid Token");
         }
-        return cookies;
+
+        PasswordResetToken resetToken = passwordResetTokenRepository.findPasswordResetTokenByToken(storedToken)
+                .orElseThrow(() -> new BadRequestException("Invalid Refresh Token"));
+
+        if (resetToken.isUsed()) {
+            throw new BadRequestException("Token Already Used");
+        }
+
+        if (resetToken.getExpiryDate().isBefore(Instant.now())) {
+            throw new BadRequestException("Token Expired");
+        }
+
+        userServiceInter.updatePasswordByUserId(
+                resetToken.getUserId(),
+                passwordEncoder.encode(newPassword)
+        );
+
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
     }
 }

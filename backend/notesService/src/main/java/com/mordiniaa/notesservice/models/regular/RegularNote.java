@@ -1,7 +1,7 @@
 package com.mordiniaa.notesservice.models.regular;
 
 
-import com.mordiniaa.backend.models.note.Note;
+import com.mordiniaa.notesservice.models.Note;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,8 +1,8 @@
 package com.mordiniaa.storageservice.services;
 
-import com.mordiniaa.backend.exceptions.BadRequestException;
-import com.mordiniaa.backend.exceptions.UnexpectedException;
-import com.mordiniaa.backend.models.file.cloudStorage.FileNodeStorageKey;
+import com.mordiniaa.storageservice.exceptions.BadRequestException;
+import com.mordiniaa.storageservice.exceptions.UnexpectedException;
+import com.mordiniaa.storageservice.models.cloudStorage.FileNodeStorageKey;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
