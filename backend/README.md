@@ -108,24 +108,14 @@ All values must remain consistent between `.env` and these initialization script
 
 ---
 
-### 5. Storage Configuration
-
-The following variables define file storage locations:
-STORAGE_ROOT=/data/files_storage
-PROFILE_IMAGES_ROOT=/data/profile_images_storage
-
-These paths can be changed, but must point to valid directories accessible by the application.
-
----
-
-### 6. Mail Configuration
+### 5. Mail Configuration
 
 To enable email functionality:
 
 1. Create an application in your Google account (App Password).
 2. Set the following variables:
-MAIL_ADDR=your_email@gmail.com
-MAIL_PASSWD=generated_app_password
+- MAIL_ADDR=your_email@gmail.com
+- MAIL_PASSWD=generated_app_password
 
 Important:
 
@@ -134,7 +124,7 @@ Important:
 
 ---
 
-### 7. Summary
+### 6. Summary
 
 - `.env` must be in `deployment/docker` next to `docker-compose`  
 - MySQL database names must NOT be changed  
